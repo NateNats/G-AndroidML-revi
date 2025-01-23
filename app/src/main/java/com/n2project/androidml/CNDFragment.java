@@ -31,8 +31,8 @@ public class CNDFragment extends Fragment {
 
         binding.buttonCameraCND.setOnClickListener(null);
         binding.buttonGalleryCND.setOnClickListener(null);
-        binding.buttonBack.setOnClickListener(v ->
-                NavHostFragment.findNavController(CNDFragment.this).navigate(R.id.action_CNDFragment_to_HomeFragment));
+//        binding.buttonBack.setOnClickListener(v ->
+//                NavHostFragment.findNavController(CNDFragment.this).navigate(R.id.action_CNDFragment_to_HomeFragment));
     }
 
 }
