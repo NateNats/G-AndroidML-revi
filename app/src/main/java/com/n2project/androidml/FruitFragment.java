@@ -3,7 +3,6 @@ package com.n2project.androidml;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,7 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.n2project.androidml.databinding.FragmentThirdBinding;
 
-
+import java.io.IOException;
+import java.util.Arrays;
 
 public class FruitFragment extends Fragment {
 
@@ -28,11 +28,11 @@ public class FruitFragment extends Fragment {
     private static final int CAMERA_REQUEST = 100;
     private Uri selectedImage;
     private Bitmap photo;
+    private TFLiteModel tflite;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentThirdBinding.inflate(inflater, container, false);
-
         return binding.getRoot();
     }
 
@@ -54,8 +54,6 @@ public class FruitFragment extends Fragment {
                     binding.buttonDelete.setEnabled(true);
                     binding.imageView.setImageURI(selectedImage);
                     classifyImage(selectedImage);
-
-
                 }
             }
         });
@@ -68,6 +66,7 @@ public class FruitFragment extends Fragment {
                     photo = (Bitmap) data.getExtras().get("data");
                     binding.imageView.setImageBitmap(photo);
                     binding.buttonDelete.setEnabled(true);
+                    classifyImage(photo);
                 }
             }
         });
@@ -86,22 +85,33 @@ public class FruitFragment extends Fragment {
     }
 
     private void classifyImage(Uri img) {
-//        try {
-//            Model model = Model.newInstance(context);
-//
-//            // Creates inputs for reference.
-//            TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 224, 224, 3}, DataType.FLOAT32);
-//            inputFeature0.loadBuffer(byteBuffer);
-//
-//            // Runs model inference and gets result.
-//            Model.Outputs outputs = model.process(inputFeature0);
-//            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
-//
-//            // Releases model resources if no longer used.
-//            model.close();
-//        } catch (IOException e) {
-//            // TODO Handle the exception
-//        }
+        try {
+            Bitmap map = MediaStore.Images.Media.getBitmap(this.getActivity().getContentResolver(), img);
+            Bitmap scaledBitmap = Bitmap.createScaledBitmap(map, 224, 224, true);
+            int[] pixelValues = new int[224 * 224];
+            scaledBitmap.getPixels(pixelValues, 0, 224, 0, 0, 224, 224);
+            float[][] input = new float[1][224 * 224 * 3];
+
+            for (int i = 0; i < (224 * 224); i++) {
+                int pixel = pixelValues[i];
+
+                input[0][i * 3] = ((pixel >> 16) & 0xFF) / 255.0f;
+                input[0][i * 3 + 1] = ((pixel >> 8) & 0xFF) / 255.0f;
+                input[0][i * 3 + 2] = (pixel & 0xFF) / 255.0f;
+            }
+
+            tflite = new TFLiteModel(getContext());
+            float[] result = tflite.predict(input);
+            binding.textResultF.setText(Arrays.toString(result));
+            tflite.close();
+
+        } catch (Exception e) {
+            e.getStackTrace();
+        }
+    }
+
+    private void classifyImage(Bitmap map) {
+
     }
 
     private void openCamera() {
