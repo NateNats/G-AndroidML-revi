@@ -59,7 +59,7 @@
         android:layout_height="191dp"
         android:layout_marginTop="408dp"
         android:gravity="center"
-        android:text=""
+        android:text="heloo"
         android:textAlignment="center"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"

@@ -37,6 +37,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.tensorflow.lite.support)
+    implementation(libs.tensorflow.lite.metadata)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
