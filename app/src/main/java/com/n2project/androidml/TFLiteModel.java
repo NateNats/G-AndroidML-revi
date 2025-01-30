@@ -1,7 +1,6 @@
 package com.n2project.androidml;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 
 import org.tensorflow.lite.Interpreter;
 import java.io.FileInputStream;
@@ -13,21 +12,22 @@ public class TFLiteModel {
     private Interpreter interpreter;
 
     public TFLiteModel(Context context) throws IOException {
-        interpreter = new Interpreter(loadModelFile(context, "app/src/main/ml/model.tflite"));
+        Interpreter.Options options = new Interpreter.Options();
+        options.setNumThreads(4);
+        interpreter = new Interpreter(loadModelFile(context), options);
     }
 
-    private MappedByteBuffer loadModelFile(Context context, String modelPath) throws IOException {
-        FileInputStream fis = new FileInputStream(context.getAssets().openFd(modelPath).getFileDescriptor());
-        FileChannel fh = fis.getChannel();
-        long startOffset = context.getAssets().openFd(modelPath).getStartOffset();
-        long endOffset = context.getAssets().openFd(modelPath).getDeclaredLength();
-        return fh.map(FileChannel.MapMode.READ_ONLY, startOffset, endOffset);
+    private MappedByteBuffer loadModelFile(Context context) throws IOException {
+        try (FileInputStream fis = new FileInputStream(context.getAssets().openFd("model.tflite").getFileDescriptor())) {
+            FileChannel fileChannel = fis.getChannel();
+            long startOffset = context.getAssets().openFd("model.tflite").getStartOffset();
+            long declaredLength = context.getAssets().openFd("model.tflite").getDeclaredLength();
+            return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
+        }
     }
 
-    public float[] predict(float[][] input) {
-        float[][] output = new float[1][1];
+    public void predict(float[][][][] input, float[][] output) {
         interpreter.run(input, output);
-        return output[0];
     }
 
     public void close() {

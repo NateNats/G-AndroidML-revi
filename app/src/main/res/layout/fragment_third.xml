@@ -55,13 +55,13 @@
 
     <TextView
         android:id="@+id/textResultF"
-        android:layout_width="292dp"
-        android:layout_height="191dp"
-        android:layout_marginTop="408dp"
+        android:layout_width="286dp"
+        android:layout_height="230dp"
+        android:layout_marginTop="380dp"
         android:gravity="center"
-        android:text="heloo"
+        android:text=""
         android:textAlignment="center"
-        android:textSize="18sp"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

@@ -1,13 +1,10 @@
 package com.n2project.androidml;
 
 import android.os.Bundle;
-import com.google.android.material.snackbar.Snackbar;
 import com.n2project.androidml.databinding.ActivityMainBinding;
 
 import androidx.appcompat.app.AppCompatActivity;
-import android.view.View;
 import android.view.Menu;
-import android.view.MenuItem;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;

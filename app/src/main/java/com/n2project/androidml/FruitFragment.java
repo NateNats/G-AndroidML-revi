@@ -4,9 +4,12 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.ImageDecoder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +22,7 @@ import com.n2project.androidml.databinding.FragmentThirdBinding;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public class FruitFragment extends Fragment {
 
@@ -73,8 +77,6 @@ public class FruitFragment extends Fragment {
 
         binding.buttonGalleryF.setOnClickListener(v -> imageChooser());
         binding.buttonCameraF.setOnClickListener(v -> openCamera());
-//        binding.buttonBack.setOnClickListener(v ->
-//                NavHostFragment.findNavController(FruitFragment.this).navigate(R.id.action_FruitFragment_to_HomeFragment));
 
         binding.buttonDelete.setOnClickListener(v -> {
             binding.imageView.setImageBitmap(null);
@@ -86,32 +88,96 @@ public class FruitFragment extends Fragment {
 
     private void classifyImage(Uri img) {
         try {
-            Bitmap map = MediaStore.Images.Media.getBitmap(this.getActivity().getContentResolver(), img);
-            Bitmap scaledBitmap = Bitmap.createScaledBitmap(map, 224, 224, true);
-            int[] pixelValues = new int[224 * 224];
-            scaledBitmap.getPixels(pixelValues, 0, 224, 0, 0, 224, 224);
-            float[][] input = new float[1][224 * 224 * 3];
+            Bitmap map;
 
-            for (int i = 0; i < (224 * 224); i++) {
-                int pixel = pixelValues[i];
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ImageDecoder.Source source = ImageDecoder.createSource(this.getActivity().getContentResolver(), img);
+                map = ImageDecoder.decodeBitmap(source, (decoder, info, s) -> {
+                    decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE);
+                    decoder.setMemorySizePolicy(ImageDecoder.MEMORY_POLICY_LOW_RAM);
+                });
 
-                input[0][i * 3] = ((pixel >> 16) & 0xFF) / 255.0f;
-                input[0][i * 3 + 1] = ((pixel >> 8) & 0xFF) / 255.0f;
-                input[0][i * 3 + 2] = (pixel & 0xFF) / 255.0f;
+            } else {
+                map = MediaStore.Images.Media.getBitmap(this.getActivity().getContentResolver(), img);
             }
 
-            tflite = new TFLiteModel(getContext());
-            float[] result = tflite.predict(input);
-            binding.textResultF.setText(Arrays.toString(result));
-            tflite.close();
+            if (map != null) {
+                map = map.copy(Bitmap.Config.ARGB_8888, true);
+                process(map);
+            } else {
+                binding.textResultF.setText("Error: Gambar tidak valid");
+            }
 
         } catch (Exception e) {
-            e.getStackTrace();
+            binding.textResultF.setText("Error: " + e.getMessage());
+            Log.e("ML_Error", "Gagal mengklasifikasikan gambar", e);
         }
     }
 
     private void classifyImage(Bitmap map) {
+        try {
+            if (map != null) {
+                process(map);
+            } else {
+                binding.textResultF.setText("Error: Bitmap kosong");
+            }
 
+        } catch (Exception e) {
+            binding.textResultF.setText("Error: " + e.getMessage());
+            Log.e("ML_Error", "Gagal mengklasifikasikan gambar", e);
+        }
+    }
+
+    private void process(Bitmap map) throws IOException {
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(map, 224, 224, true);
+        float[][][][] input = new float[1][224][224][3];
+
+        for (int y = 0; y < 224; y++) {
+            for (int x = 0; x < 224; x++) {
+                int pixel = scaledBitmap.getPixel(x, y);
+
+                input[0][y][x][0] = ((pixel >> 16) & 0xFF) / 255.0f;
+                input[0][y][x][1] = ((pixel >> 8) & 0xFF) / 255.0f;
+                input[0][y][x][2] = (pixel & 0xFF) / 255.0f;
+            }
+        }
+
+        tflite = new TFLiteModel(getContext());
+        float[][] output = new float[1][9];
+        tflite.predict(input, output);
+
+        binding.textResultF.setText(indexToText(output[0]));
+        tflite.close();
+    }
+
+    private String indexToText(float[] arr) {
+        String[] fruits = {"apple", "banana", "cherry", "chickoo", "grapes", "kiwi", "mango", "orange", "strawberry"};
+        // float[] sorted = sorting(arr);
+        return fruits[0] + ": " + arr[0] + "\n" +
+                fruits[1] + ": " + arr[1] + "\n" +
+                fruits[2] + ": " + arr[2] + "\n" +
+                fruits[3] + ": " + arr[3] + "\n" +
+                fruits[4] + ": " + arr[4] + "\n" +
+                fruits[5] + ": " + arr[5] + "\n" +
+                fruits[6] + ": " + arr[6] + "\n" +
+                fruits[7] + ": " + arr[7] + "\n" +
+                fruits[8] + ": " + arr[8];
+    }
+
+    private float[] sorting(float[] arr) {
+        int n = arr.length;
+
+        for (int i = 0; i < n -1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (arr[j] < arr[j + 1]) {
+                    float temp = arr[j+1];
+                    arr[j+1] = arr[j];
+                    arr[j] = temp;
+                }
+            }
+        }
+
+        return arr;
     }
 
     private void openCamera() {
