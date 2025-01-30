@@ -142,7 +142,7 @@ public class FruitFragment extends Fragment {
             }
         }
 
-        tflite = new TFLiteModel(getContext());
+        tflite = new TFLiteModel(getContext(), "model.tflite");
         float[][] output = new float[1][9];
         tflite.predict(input, output);
 

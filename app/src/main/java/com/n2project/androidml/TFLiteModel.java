@@ -11,17 +11,17 @@ import java.nio.channels.FileChannel;
 public class TFLiteModel {
     private Interpreter interpreter;
 
-    public TFLiteModel(Context context) throws IOException {
+    public TFLiteModel(Context context, String modelName) throws IOException {
         Interpreter.Options options = new Interpreter.Options();
         options.setNumThreads(4);
-        interpreter = new Interpreter(loadModelFile(context), options);
+        interpreter = new Interpreter(loadModelFile(context, modelName), options);
     }
 
-    private MappedByteBuffer loadModelFile(Context context) throws IOException {
-        try (FileInputStream fis = new FileInputStream(context.getAssets().openFd("model.tflite").getFileDescriptor())) {
+    private MappedByteBuffer loadModelFile(Context context, String modelName) throws IOException {
+        try (FileInputStream fis = new FileInputStream(context.getAssets().openFd(modelName).getFileDescriptor())) {
             FileChannel fileChannel = fis.getChannel();
-            long startOffset = context.getAssets().openFd("model.tflite").getStartOffset();
-            long declaredLength = context.getAssets().openFd("model.tflite").getDeclaredLength();
+            long startOffset = context.getAssets().openFd(modelName).getStartOffset();
+            long declaredLength = context.getAssets().openFd(modelName).getDeclaredLength();
             return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
         }
     }
