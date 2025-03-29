@@ -1,4 +1,4 @@
-package com.n2project.androidml;
+package com.n2project.androidml.ui.fruit;
 
 import android.Manifest;
 import android.content.Intent;
@@ -18,6 +18,9 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
+import com.n2project.androidml.MainActivity;
+import com.n2project.androidml.data.model.TFLiteModel;
 import com.n2project.androidml.databinding.FragmentThirdBinding;
 
 import java.io.IOException;

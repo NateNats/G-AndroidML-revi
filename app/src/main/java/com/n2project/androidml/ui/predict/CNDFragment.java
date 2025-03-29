@@ -1,4 +1,4 @@
-package com.n2project.androidml;
+package com.n2project.androidml.ui.predict;
 
 import android.Manifest;
 import android.content.Intent;
@@ -18,9 +18,10 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
+
+import com.n2project.androidml.MainActivity;
+import com.n2project.androidml.data.model.TFLiteModel;
 import com.n2project.androidml.databinding.FragmentSecondBinding;
-import com.n2project.androidml.databinding.FragmentThirdBinding;
 
 import java.io.IOException;
 
