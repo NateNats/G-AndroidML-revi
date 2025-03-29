@@ -1,4 +1,4 @@
-package com.n2project.androidml;
+package com.n2project.androidml.data.model;
 
 import android.content.Context;
 
